@@ -1,6 +1,6 @@
 # AssetFlow — IT Asset Management Platform
 
-**Live Demo:** [https://vercel.app](https://vercel.app)  
+**Live Demo:** [https://asset-flow-chi.vercel.app](https://asset-flow-chi.vercel.app)
 *(Note: The backend runs on a free-tier container and may take ~30 seconds to wake up on the initial request.)*
 
 AssetFlow is a fullstack IT Asset Management (ITAM) platform built with **.NET 8 (C#)**, **Angular**, and **PostgreSQL**. It is designed to support the IT asset lifecycle through structured inventory management, warranty and status reporting, and a governed, read-only AI assistant powered by deterministic tool calling.
@@ -78,12 +78,14 @@ Open `http://localhost:4200`. In development, the frontend connects to `http://l
 1. Import the repository into Vercel with `frontend` set as the **Root Directory**. The included [`frontend/vercel.json`](./frontend/vercel.json) configures the Angular output directory and SPA route fallback.
 2. Add the public runtime environment variable:
    ```text
-   ASSETFLOW_API_URL=https://your-backend-host.example
+   ASSETFLOW_API_URL=https://assetflow-xyyv.onrender.com/api
    ```
 3. Redeploy after updating environment variables. *(Do not expose `DATABASE_URL` or `GROQ_API_KEY` in the frontend project.)*
 
 ### Backend (Docker / Render)
 1. Deploy `backend/Dockerfile` as a Web Service with `backend` as the **Root Directory**.
-2. Configure `DATABASE_URL`, `GROQ_API_KEY`, `GROQ_MODEL`, and `CORS_ALLOWED_ORIGINS` (set to your Vercel origin, e.g., `https://vercel.app`).
+2. Configure `DATABASE_URL`, `GROQ_API_KEY`, and `GROQ_MODEL` on the backend host. The API allows the current production and preview Vercel origins from `appsettings.json`; add other exact origins to `CORS_ALLOWED_ORIGINS` as a comma-separated list.
+
+Vercel preview URLs change between deployments. Use the stable production domain for normal access, or add the current preview origin to the Render service's `CORS_ALLOWED_ORIGINS` environment variable and redeploy the backend.
 
 For detailed frontend setup instructions, see [`frontend/README.md`](./frontend/README.md).

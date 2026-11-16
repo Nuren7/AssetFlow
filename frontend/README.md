@@ -25,8 +25,8 @@ The frontend is available at `http://localhost:4200` and uses `http://localhost:
 1. Deploy the .NET API to a public HTTPS host first.
 2. In Vercel, import the repository and set **Root Directory** to `frontend`.
 3. Use the build command `npm run build -- --configuration production` and output directory `dist/assetflow/browser`. The included `vercel.json` configures these values and enables Angular route refreshes.
-4. Add the Vercel environment variable `ASSETFLOW_API_URL` with the public API base URL, including `/api`, for example `https://api.example.com/api`.
-5. Add the deployed Vercel origin to the backend's `CORS_ALLOWED_ORIGINS` setting, then redeploy both projects after changing environment variables.
+4. Add the Vercel environment variable `ASSETFLOW_API_URL` with the public API base URL, including `/api`, for example `https://assetflow-xyyv.onrender.com/api`.
+5. Add the deployed Vercel origin to the backend's `CORS_ALLOWED_ORIGINS` setting if it is not already in `backend/src/AssetFlow.API/appsettings.json`, then redeploy both projects after changing environment variables. Vercel preview origins are deployment-specific; use the stable production domain or update this setting for each preview that needs access.
 
 The API URL is included in public frontend JavaScript. Never put database credentials, `GROQ_API_KEY`, or other secrets in Vercel frontend variables; configure those on the backend host only.
 
