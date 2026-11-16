@@ -1,0 +1,16 @@
+@AssetFlow.API_HostAddress = http://localhost:5073
+
+GET {{AssetFlow.API_HostAddress}}/api/health
+Accept: application/json
+
+###
+
+GET {{AssetFlow.API_HostAddress}}/api/assets?search=Latitude&category=Laptop
+Accept: application/json
+
+###
+
+GET {{AssetFlow.API_HostAddress}}/api/assets/stats
+Accept: application/json
+
+###
