@@ -1,0 +1,43 @@
+.status-badge {
+  display: inline-flex;
+  min-height: 23px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 550;
+  white-space: nowrap;
+}
+
+.badge-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status-badge--available {
+  border-color: #3a5143;
+  background: #202b24;
+  color: #a4cdb2;
+}
+
+.status-badge--assigned {
+  border-color: #3a4659;
+  background: #222834;
+  color: #a7bce6;
+}
+
+.status-badge--inrepair {
+  border-color: #5b4b38;
+  background: #30281f;
+  color: #e8c092;
+}
+
+.status-badge--retired {
+  border-color: #594040;
+  background: #302322;
+  color: #e6a0a0;
+}

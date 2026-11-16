@@ -1,0 +1,290 @@
+<section class="page inventory-page">
+  <div class="page-header">
+    <div>
+      <div class="eyebrow"><span class="eyebrow-rule"></span> ASSET MANAGEMENT</div>
+      <h1>Overview &amp; inventory</h1>
+      <p class="page-description">A clear view of your organization's equipment.</p>
+    </div>
+    <div class="header-date">
+      <span class="date-label">TODAY</span>
+      <span>{{ currentDate }}</span>
+    </div>
+  </div>
+
+  @if (errorMessage() || successMessage()) {
+    <div class="notice" [class.notice--error]="errorMessage()" [class.notice--success]="successMessage()" role="status">
+      <span>{{ errorMessage() || successMessage() }}</span>
+      <button type="button" class="notice-close" aria-label="Dismiss notification" (click)="dismissMessages()">×</button>
+    </div>
+  }
+
+  <section class="metrics-grid" aria-label="Inventory summary">
+    <article class="metric-card">
+      <div class="metric-heading"><span class="metric-icon metric-icon--neutral">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2" /><path d="M8 9h8M8 13h5" /></svg>
+      </span><span class="metric-label">Total assets</span></div>
+      <div class="metric-value">{{ stats()?.totalAssets ?? '—' }}</div>
+      <div class="metric-footnote">Across your organization</div>
+    </article>
+    <article class="metric-card">
+      <div class="metric-heading"><span class="metric-icon metric-icon--sage">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 12 4 4 8-8" /></svg>
+      </span><span class="metric-label">Available</span></div>
+      <div class="metric-value">{{ stats()?.availableCount ?? '—' }}</div>
+      <div class="metric-footnote">Ready to be assigned</div>
+    </article>
+    <article class="metric-card">
+      <div class="metric-heading"><span class="metric-icon metric-icon--blue">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="9" cy="8" r="3" /><path d="M3.5 19v-1.5A4.5 4.5 0 0 1 8 13h2a4.5 4.5 0 0 1 4.5 4.5V19M16 5.5a3 3 0 0 1 0 5.8m2 2.2a4.5 4.5 0 0 1 2.5 4v1.5" /></svg>
+      </span><span class="metric-label">Assigned</span></div>
+      <div class="metric-value">{{ stats()?.assignedCount ?? '—' }}</div>
+      <div class="metric-footnote">Currently in use</div>
+    </article>
+    <article class="metric-card">
+      <div class="metric-heading"><span class="metric-icon metric-icon--apricot">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 8v4l2.5 1.5" /><circle cx="12" cy="12" r="8.5" /></svg>
+      </span><span class="metric-label">In repair</span></div>
+      <div class="metric-value">{{ stats()?.inRepairCount ?? '—' }}</div>
+      <div class="metric-footnote">Being serviced</div>
+    </article>
+  </section>
+
+  @if (warrantyAlerts().length) {
+    <section class="warranty-panel" aria-labelledby="warranty-heading">
+      <div class="warranty-overview">
+        <span class="warranty-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 3.5 21 20H3l9-16.5Z" /><path d="M12 9v4.5m0 3h.01" /></svg>
+        </span>
+        <div>
+          <div class="warranty-kicker">WARRANTY WATCH</div>
+          <h2 id="warranty-heading">{{ stats()?.expiringWithin30DaysCount ?? warrantyAlerts().length }} warranties expiring soon</h2>
+          <p>Review upcoming expirations in the next 30 days.</p>
+        </div>
+      </div>
+      <div class="warranty-list">
+        @for (asset of warrantyAlerts(); track asset.id) {
+          <div class="warranty-item">
+            <div class="warranty-asset">
+              <span class="warranty-asset-name">{{ asset.name }}</span>
+              <span class="warranty-asset-meta">{{ asset.manufacturer }} · {{ asset.serialNumber }}</span>
+            </div>
+            <span class="warranty-date">{{ warrantyLabel(asset) }}</span>
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  <section class="inventory-section" aria-labelledby="inventory-heading">
+    <div class="section-heading">
+      <div>
+        <div class="section-kicker">EQUIPMENT REGISTER</div>
+        <h2 id="inventory-heading">Asset inventory <span class="count-pill">{{ assets().length }}</span></h2>
+      </div>
+      <button class="button button--primary add-button" type="button" (click)="openCreate()">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+        Add asset
+      </button>
+    </div>
+
+    <form class="filter-toolbar" [formGroup]="filtersForm" aria-label="Filter inventory">
+      <label class="search-field">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" /><path d="m16 16 4 4" /></svg>
+        <input formControlName="search" type="search" placeholder="Search by name, model, or serial number..." aria-label="Search assets">
+        <span class="search-shortcut">Ctrl K</span>
+      </label>
+      <label class="select-field">
+        <span class="sr-only">Filter by category</span>
+        <select formControlName="category">
+          <option value="">All categories</option>
+          @for (category of categories; track category) { <option [value]="category">{{ category }}</option> }
+        </select>
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5" /></svg>
+      </label>
+      <label class="select-field">
+        <span class="sr-only">Filter by status</span>
+        <select formControlName="status">
+          <option value="">All statuses</option>
+          @for (status of statuses; track status) { <option [value]="status">{{ status === 'InRepair' ? 'In repair' : status }}</option> }
+        </select>
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5" /></svg>
+      </label>
+    </form>
+
+    <div class="table-shell">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Asset</th>
+              <th scope="col">Model</th>
+              <th scope="col">Serial number</th>
+              <th scope="col">Category</th>
+              <th scope="col">Status</th>
+              <th scope="col">Location</th>
+              <th scope="col">Warranty expiration</th>
+              <th scope="col"><span class="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (loading()) {
+              <tr><td class="table-message" colspan="8"><span class="loading-bar"></span>Loading inventory...</td></tr>
+            } @else if (assets().length === 0) {
+              <tr>
+                <td class="table-message" colspan="8">
+                  <div class="empty-state">
+                    <span class="empty-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M8 9h8M8 13h5" /></svg>
+                    </span>
+                    <strong>No assets found</strong>
+                    <span>Try adjusting your filters or add a new asset to the register.</span>
+                    <button class="button button--quiet" type="button" (click)="clearFilters()">Clear filters</button>
+                  </div>
+                </td>
+              </tr>
+            } @else {
+              @for (asset of assets(); track asset.id) {
+                <tr>
+                  <td>
+                    <div class="asset-cell">
+                      <span class="asset-initial" [class]="'asset-initial asset-initial--' + asset.category.toLowerCase()">{{ asset.category === 'Laptop' ? 'LT' : asset.category === 'Monitor' ? 'MN' : asset.category === 'Mobile' ? 'MB' : asset.category === 'Network' ? 'NW' : asset.category === 'Accessory' ? 'AC' : 'OT' }}</span>
+                      <span class="asset-copy"><strong>{{ asset.name }}</strong><small>{{ asset.manufacturer }}</small></span>
+                    </div>
+                  </td>
+                  <td class="model-cell">{{ asset.model }}</td>
+                  <td class="serial-cell">{{ asset.serialNumber }}</td>
+                  <td><span class="category-label">{{ asset.category }}</span></td>
+                  <td><app-status-badge [status]="asset.status" /></td>
+                  <td class="location-cell">{{ asset.location }}</td>
+                  <td>
+                    <span class="warranty-cell" [class.warranty-cell--soon]="isWarrantySoon(asset)">
+                      {{ formatDate(asset.warrantyExpirationDate) }}
+                      @if (isWarrantySoon(asset)) { <small>{{ warrantyLabel(asset) }}</small> }
+                    </span>
+                  </td>
+                  <td>
+                    <div class="row-actions">
+                      <button class="icon-button" type="button" [attr.aria-label]="'Edit ' + asset.name" title="Edit asset" (click)="openEdit(asset)">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m14 5 5 5M4 20l4.3-.9L19 8.4 15.6 5 4.9 15.7 4 20Z" /></svg>
+                      </button>
+                      <button class="icon-button icon-button--danger" type="button" [attr.aria-label]="'Delete ' + asset.name" title="Delete asset" (click)="deletingAsset.set(asset)">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3m3 0-.8 13H6.8L6 7m4 4v5m4-5v5" /></svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>Showing <strong>{{ assets().length }}</strong> of <strong>{{ stats()?.totalAssets ?? assets().length }}</strong> assets</span>
+        <span class="table-footer-note"><span class="status-dot"></span> Up to date</span>
+      </div>
+    </div>
+  </section>
+</section>
+
+@if (editorOpen()) {
+  <div class="drawer-backdrop" (click)="closeEditor()">
+    <section class="asset-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" (click)="$event.stopPropagation()">
+      <div class="drawer-header">
+        <div>
+          <div class="section-kicker">{{ editingAsset() ? 'UPDATE REGISTER' : 'NEW REGISTER ENTRY' }}</div>
+          <h2 id="drawer-title">{{ editingAsset() ? 'Edit asset' : 'Add asset' }}</h2>
+          <p>Keep equipment details accurate and easy to find.</p>
+        </div>
+        <button class="icon-button close-drawer" type="button" aria-label="Close form" [disabled]="saving()" (click)="closeEditor()">×</button>
+      </div>
+      @if (errorMessage()) {
+        <div class="form-error" role="alert">
+          <strong>{{ errorMessage() }}</strong>
+          @for (item of fieldErrors() | keyvalue; track item.key) {
+            @for (message of item.value; track message) { <span>{{ message }}</span> }
+          }
+        </div>
+      }
+      <form class="asset-form" [formGroup]="assetForm" (ngSubmit)="saveAsset()" novalidate>
+        <div class="form-section-label">IDENTIFICATION</div>
+        <label class="form-field" [class.form-field--invalid]="isFieldInvalid('name')">
+          <span>Asset name <i>*</i></span>
+          <input formControlName="name" type="text" placeholder="e.g. Engineering Laptop 01" autocomplete="off">
+          @if (isFieldInvalid('name')) { <small>{{ fieldError('name') }}</small> }
+        </label>
+        <div class="form-row">
+          <label class="form-field" [class.form-field--invalid]="isFieldInvalid('serialNumber')">
+            <span>Serial number <i>*</i></span>
+            <input formControlName="serialNumber" class="mono-input" type="text" placeholder="e.g. DELL-LAT-1001" autocomplete="off">
+            @if (isFieldInvalid('serialNumber')) { <small>{{ fieldError('serialNumber') }}</small> }
+          </label>
+          <label class="form-field" [class.form-field--invalid]="isFieldInvalid('category')">
+            <span>Category <i>*</i></span>
+            <select formControlName="category">
+              @for (category of categories; track category) { <option [value]="category">{{ category }}</option> }
+            </select>
+            @if (isFieldInvalid('category')) { <small>{{ fieldError('category') }}</small> }
+          </label>
+        </div>
+        <div class="form-row">
+          <label class="form-field" [class.form-field--invalid]="isFieldInvalid('manufacturer')">
+            <span>Manufacturer <i>*</i></span>
+            <input formControlName="manufacturer" type="text" placeholder="e.g. Dell">
+            @if (isFieldInvalid('manufacturer')) { <small>{{ fieldError('manufacturer') }}</small> }
+          </label>
+          <label class="form-field" [class.form-field--invalid]="isFieldInvalid('model')">
+            <span>Model <i>*</i></span>
+            <input formControlName="model" type="text" placeholder="e.g. Latitude 7440">
+            @if (isFieldInvalid('model')) { <small>{{ fieldError('model') }}</small> }
+          </label>
+        </div>
+
+        <div class="form-section-label form-section-label--spaced">ASSIGNMENT &amp; CONDITION</div>
+        <div class="form-row">
+          <label class="form-field" [class.form-field--invalid]="isFieldInvalid('status')">
+            <span>Status <i>*</i></span>
+            <select formControlName="status">
+              @for (status of statuses; track status) { <option [value]="status">{{ status === 'InRepair' ? 'In repair' : status }}</option> }
+            </select>
+          </label>
+          <label class="form-field" [class.form-field--invalid]="isFieldInvalid('location')">
+            <span>Location <i>*</i></span>
+            <input formControlName="location" type="text" placeholder="e.g. London">
+            @if (isFieldInvalid('location')) { <small>{{ fieldError('location') }}</small> }
+          </label>
+        </div>
+
+        <div class="form-section-label form-section-label--spaced">DATES &amp; WARRANTY</div>
+        <div class="form-row">
+          <label class="form-field" [class.form-field--invalid]="isFieldInvalid('purchaseDate')">
+            <span>Purchase date <i>*</i></span>
+            <input formControlName="purchaseDate" type="date">
+            @if (isFieldInvalid('purchaseDate')) { <small>{{ fieldError('purchaseDate') }}</small> }
+          </label>
+          <label class="form-field" [class.form-field--invalid]="isFieldInvalid('warrantyExpirationDate')">
+            <span>Warranty expiration <i>*</i></span>
+            <input formControlName="warrantyExpirationDate" type="date">
+            @if (isFieldInvalid('warrantyExpirationDate')) { <small>{{ fieldError('warrantyExpirationDate') }}</small> }
+          </label>
+        </div>
+
+        <div class="drawer-footer">
+          <span><i>*</i> Required fields</span>
+          <div>
+            <button class="button button--quiet" type="button" [disabled]="saving()" (click)="closeEditor()">Cancel</button>
+            <button class="button button--primary" type="submit" [disabled]="saving()">
+              {{ saving() ? 'Saving...' : editingAsset() ? 'Save changes' : 'Add asset' }}
+            </button>
+          </div>
+        </div>
+      </form>
+    </section>
+  </div>
+}
+
+@if (deletingAsset(); as asset) {
+  <app-confirm-dialog
+    [message]="'Are you sure you want to delete ' + asset.name + '? This action cannot be undone.'"
+    (cancel)="deletingAsset.set(null)"
+    (confirm)="confirmDelete()" />
+}

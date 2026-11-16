@@ -1,0 +1,123 @@
+<section class="page assistant-page">
+  <div class="page-header">
+    <div>
+      <div class="eyebrow"><span class="eyebrow-rule"></span> OPERATIONS DESK</div>
+      <h1>Asset assistant</h1>
+      <p class="page-description">Ask a question. Get an answer grounded in your inventory.</p>
+    </div>
+    <div class="access-note">
+      <span class="access-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M5 11V8a7 7 0 0 1 14 0v3M4 11h16v10H4V11Z" /><path d="M12 15v2" /></svg>
+      </span>
+      <span><strong>Read-only access</strong><small>Inventory data only</small></span>
+    </div>
+  </div>
+
+  <section class="assistant-workspace" aria-label="Asset inventory question and answer">
+    <div class="workspace-heading">
+      <div>
+        <div class="workspace-kicker">INVENTORY RESEARCH</div>
+        <span class="workspace-subtitle">A private workspace for operational questions</span>
+      </div>
+      <span class="workspace-session"><span></span> Connected</span>
+    </div>
+
+    <div #thread class="thread">
+      @if (turns().length === 0 && !loading()) {
+        <div class="welcome-note">
+          <div class="note-index">FIELD NOTE&nbsp;&nbsp; 01</div>
+          <h2>Find the details<br>that move work forward.</h2>
+          <p>Ask in plain language. Answers are based on the asset register, with the data sources shown for every response.</p>
+          <div class="welcome-rule"></div>
+          <div class="welcome-meta"><span>LIVE INVENTORY</span><span>READ-ONLY LOOKUPS</span></div>
+        </div>
+      }
+
+      @for (turn of turns(); track turn.askedAt) {
+        <article class="conversation-turn">
+          <div class="question-block">
+            <div class="turn-label"><span class="turn-index">{{ $index + 1 | number:'2.0' }}</span><span>QUESTION</span></div>
+            <p>{{ turn.question }}</p>
+            <time>{{ turn.askedAt | date:'MMM d, h:mm a' }}</time>
+          </div>
+          <div class="answer-block">
+            @if (turn.toolsUsed.length > 0) {
+              <details class="tool-disclosure">
+                <summary>
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10" /><circle cx="18" cy="17" r="2" /></svg>
+                  <span>Data sources queried <b>{{ turn.toolsUsed.length }}</b></span>
+                  <svg class="disclosure-chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5" /></svg>
+                </summary>
+                <div class="tool-list">
+                  @for (tool of turn.toolsUsed; track $index) {
+                    <div class="tool-entry">
+                      <code><span>{{ tool.toolName }}</span>({{ tool.arguments }})</code>
+                      <p>{{ tool.resultSummary }}</p>
+                    </div>
+                  }
+                </div>
+              </details>
+            }
+            <div class="answer-label">
+              <span class="answer-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M5 6.5 12 3l7 3.5v11L12 21l-7-3.5v-11Z" /><path d="M5.5 7 12 10.5 18.5 7M12 10.5V20" /></svg>
+              </span>
+              <span>INVENTORY RESPONSE</span>
+            </div>
+            <p class="answer-copy">{{ turn.answer }}</p>
+          </div>
+        </article>
+      }
+
+      @if (loading()) {
+        <div class="loading-note" role="status">
+          <span class="loading-rule"></span>
+          <span>Querying inventory...</span>
+        </div>
+      }
+    </div>
+
+    @if (errorMessage()) {
+      <div class="assistant-error" role="alert">
+        <span>{{ errorMessage() }}</span>
+        <button type="button" aria-label="Dismiss error" (click)="errorMessage.set('')">×</button>
+      </div>
+    }
+
+    <div class="composer-area">
+      <div class="suggestion-heading">
+        <span>QUESTIONS TO GET STARTED</span>
+        <span>SELECT A PROMPT OR WRITE YOUR OWN</span>
+      </div>
+      <div class="suggestion-list">
+        @for (suggestion of suggestions; track suggestion) {
+          <button type="button" class="suggestion-chip" [disabled]="loading()" (click)="useSuggestion(suggestion)">
+            <span>{{ suggestion }}</span>
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10" /></svg>
+          </button>
+        }
+      </div>
+      <form class="composer" (ngSubmit)="sendMessage()">
+        <label class="sr-only" for="assistant-question">Ask an inventory question</label>
+        <textarea
+          id="assistant-question"
+          [ngModel]="question()"
+          (ngModelChange)="question.set($event)"
+          name="question"
+          rows="2"
+          maxlength="4000"
+          [disabled]="loading()"
+          placeholder="Ask about an asset, its status, or an upcoming warranty..."
+          (keydown)="onComposerKeydown($event)"></textarea>
+        <div class="composer-footer">
+          <span>Answers are limited to verified inventory records.</span>
+          <button class="send-button" type="submit" [disabled]="loading() || !question().trim()">
+            <span>{{ loading() ? 'Working...' : 'Ask question' }}</span>
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg>
+          </button>
+        </div>
+      </form>
+      <div class="composer-footnote">AssetFlow operations desk <span>·</span> Internal use</div>
+    </div>
+  </section>
+</section>
